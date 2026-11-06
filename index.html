@@ -32,7 +32,7 @@
     <div class="field">
       <label for="tok">GitHubトークン</label>
       <input type="password" id="tok" autocomplete="off" placeholder="貼り付けてください">
-      <p class="muted">この端末のブラウザにだけ保存されます。送信先アプリのリポジトリ（class-timetable・overseas-training-app）に「Contents: Read and write」の権限を持つ、Fine-grained personal access tokenを使ってください。</p>
+      <p class="muted">この端末のブラウザにだけ保存されます。送信先アプリのリポジトリ（class-timetable・overseas-training-app・game-plan-memo）に「Contents: Read and write」の権限を持つ、Fine-grained personal access tokenを使ってください。</p>
     </div>
   </div>
 
@@ -42,6 +42,7 @@
       <select id="app">
         <option value="timetable">時間割アプリ</option>
         <option value="trip">海外実学研修アプリ</option>
+        <option value="gameplan">企画書メモアプリ（ポップアップのみ）</option>
       </select>
     </div>
     <div class="field">
@@ -58,7 +59,8 @@
   "use strict";
   var APPS = {
     timetable: { owner: "RIU11", repo: "class-timetable", path: "whatsnew-data.json", name: "時間割アプリ" },
-    trip: { owner: "RIU11", repo: "overseas-training-app", path: "announce-data.json", name: "海外実学研修アプリ" }
+    trip: { owner: "RIU11", repo: "overseas-training-app", path: "announce-data.json", name: "海外実学研修アプリ" },
+    gameplan: { owner: "RIU11", repo: "game-plan-memo", path: "announce-data.json", name: "企画書メモアプリ（ポップアップのみ、プッシュ通知はありません）" }
   };
 
   var tokEl = document.getElementById("tok");
