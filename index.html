@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>お知らせ送信</title>
+<style>
+  :root{--bg:#f3f5fb;--card:#ffffff;--line:rgba(20,30,70,.12);--text:#1c2340;--sub:#6c7490;--acc:#4f6df0;--accbg:rgba(79,109,240,.1);--ok:#1a8f4c;--err:#c23b3b}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:"Hiragino Sans","Yu Gothic UI",Meiryo,system-ui,sans-serif;padding:20px 16px 60px;display:flex;justify-content:center}
+  .wrap{width:100%;max-width:420px}
+  h1{font-size:1.2rem;margin:4px 0 16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:0 4px 14px rgba(20,30,70,.06)}
+  label{display:block;font-size:.82rem;color:var(--sub);margin:0 0 6px;font-weight:700}
+  input[type=password],select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fbfbff;color:var(--text);font:inherit;font-size:.92rem}
+  textarea{min-height:110px;resize:vertical}
+  .field{margin-bottom:12px}
+  .muted{color:var(--sub);font-size:.78rem;line-height:1.5}
+  button{width:100%;min-height:46px;background:var(--acc);color:#fff;border:0;border-radius:12px;font:inherit;font-size:.95rem;font-weight:700}
+  button:disabled{opacity:.5}
+  .msg{margin-top:10px;font-size:.86rem;white-space:pre-wrap}
+  .msg.ok{color:var(--ok)}
+  .msg.err{color:var(--err)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>お知らせ送信</h1>
+
+  <div class="card">
+    <div class="field">
+      <label for="tok">GitHubトークン</label>
+      <input type="password" id="tok" autocomplete="off" placeholder="貼り付けてください">
+      <p class="muted">この端末のブラウザにだけ保存されます。送信先アプリのリポジトリ（class-timetable・overseas-training-app）に「Contents: Read and write」の権限を持つ、Fine-grained personal access tokenを使ってください。</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="field">
+      <label for="app">送信先のアプリ</label>
+      <select id="app">
+        <option value="timetable">時間割アプリ</option>
+        <option value="trip">海外実学研修アプリ</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="comment">コメント（お知らせの内容）</label>
+      <textarea id="comment" placeholder="例：〇〇の機能を追加しました。"></textarea>
+    </div>
+    <button type="button" id="send">送信する</button>
+    <div class="msg" id="msg"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var APPS = {
+    timetable: { owner: "RIU11", repo: "class-timetable", path: "whatsnew-data.json", name: "時間割アプリ" },
+    trip: { owner: "RIU11", repo: "overseas-training-app", path: "announce-data.json", name: "海外実学研修アプリ" }
+  };
+
+  var tokEl = document.getElementById("tok");
+  try { tokEl.value = localStorage.getItem("sender_token") || ""; } catch (e) { /* 無視 */ }
+  tokEl.addEventListener("input", function () { try { localStorage.setItem("sender_token", tokEl.value); } catch (e) { /* 無視 */ } });
+
+  function b64encode(str) {
+    return btoa(unescape(encodeURIComponent(str)));
+  }
+  function b64decode(str) {
+    return decodeURIComponent(escape(atob(str)));
+  }
+  function newId() {
+    return new Date().toISOString().slice(0, 10) + "-" + Date.now().toString(36);
+  }
+  function setMsg(text, cls) {
+    var m = document.getElementById("msg");
+    m.textContent = text;
+    m.className = "msg" + (cls ? " " + cls : "");
+  }
+
+  document.getElementById("send").addEventListener("click", function () {
+    var token = tokEl.value.trim();
+    var app = APPS[document.getElementById("app").value];
+    var comment = document.getElementById("comment").value.trim();
+    if (!token) { setMsg("GitHubトークンを入力してください。", "err"); return; }
+    if (!comment) { setMsg("コメントを入力してください。", "err"); return; }
+
+    var btn = document.getElementById("send");
+    btn.disabled = true; setMsg("送信中…");
+
+    var api = "https://api.github.com/repos/" + app.owner + "/" + app.repo + "/contents/" + app.path;
+    var headers = { Authorization: "Bearer " + token, Accept: "application/vnd.github+json" };
+
+    fetch(api, { headers: headers }).then(function (r) {
+      if (!r.ok) throw new Error("現在の内容を取得できませんでした（status " + r.status + "）。トークンの権限を確認してください。");
+      return r.json();
+    }).then(function (file) {
+      var list;
+      try { list = JSON.parse(b64decode(file.content.replace(/\n/g, ""))); } catch (e) { throw new Error("ファイルの内容を読み取れませんでした。"); }
+      if (!Array.isArray(list)) list = [];
+      list.unshift({ id: newId(), title: "お知らせ", body: [comment] });
+      var newContent = b64encode(JSON.stringify(list, null, 2) + "\n");
+      return fetch(api, {
+        method: "PUT",
+        headers: Object.assign({ "Content-Type": "application/json" }, headers),
+        body: JSON.stringify({ message: app.name + "にお知らせを追加", content: newContent, sha: file.sha })
+      });
+    }).then(function (r) {
+      if (!r.ok) return r.json().then(function (j) { throw new Error("送信できませんでした（status " + r.status + "）：" + (j && j.message ? j.message : "")); });
+      setMsg(app.name + "に送信しました。数十秒でアプリに届きます。", "ok");
+      document.getElementById("comment").value = "";
+    }).catch(function (e) {
+      setMsg(e.message || "送信できませんでした。", "err");
+    }).finally(function () {
+      btn.disabled = false;
+    });
+  });
+})();
+</script>
+</body>
+</html>
