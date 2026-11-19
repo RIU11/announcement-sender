@@ -32,7 +32,7 @@
     <div class="field">
       <label for="tok">GitHubトークン</label>
       <input type="password" id="tok" autocomplete="off" placeholder="貼り付けてください">
-      <p class="muted">この端末のブラウザにだけ保存されます。送信先アプリのリポジトリ（class-timetable・overseas-training-app・game-plan-memo・bike-run-game・tup-duck-jump・mp-magnet-game）に「Contents: Read and write」の権限を持つ、Fine-grained personal access tokenを使ってください。</p>
+      <p class="muted">この端末のブラウザにだけ保存されます。送信先アプリのリポジトリ（class-timetable・overseas-training-app・game-plan-memo・bike-run-game・tup-duck-jump・mp-magnet-game・minutes-app）に「Contents: Read and write」の権限を持つ、Fine-grained personal access tokenを使ってください。</p>
     </div>
   </div>
 
@@ -46,6 +46,7 @@
         <option value="bikerun">自転車ランゲーム（ポップアップのみ）</option>
         <option value="tupduck">Tup Duck Jump（ポップアップのみ）</option>
         <option value="mpgame">MP マグネットポイント（ポップアップのみ）</option>
+        <option value="minutes">議事録アプリ（ポップアップのみ）</option>
       </select>
     </div>
     <div class="field">
@@ -66,7 +67,8 @@
     gameplan: { owner: "RIU11", repo: "game-plan-memo", path: "announce-data.json", name: "企画書メモアプリ（ポップアップのみ、プッシュ通知はありません）" },
     bikerun: { owner: "RIU11", repo: "bike-run-game", path: "announce-data.json", name: "自転車ランゲーム（ポップアップのみ、プッシュ通知はありません）" },
     tupduck: { owner: "RIU11", repo: "tup-duck-jump", path: "announce-data.json", name: "Tup Duck Jump（ポップアップのみ、プッシュ通知はありません）" },
-    mpgame: { owner: "RIU11", repo: "mp-magnet-game", path: "announce-data.json", name: "MP マグネットポイント（ポップアップのみ、プッシュ通知はありません）" }
+    mpgame: { owner: "RIU11", repo: "mp-magnet-game", path: "announce-data.json", name: "MP マグネットポイント（ポップアップのみ、プッシュ通知はありません）" },
+    minutes: { owner: "RIU11", repo: "minutes-app", path: "announce-data.json", name: "議事録アプリ（ポップアップのみ、プッシュ通知はありません）" }
   };
 
   var tokEl = document.getElementById("tok");
